@@ -1,10 +1,10 @@
 mod base_array;
 
-use base_array::{Array, ArrayItem, create_array, ArrayIndex, ArrayCell};
+use base_array::{ArrayClosure, ArrayItem, create_array, ArrayIndex, ArrayCell, Array};
 use std::rc::Rc;
 
 pub struct MyAwesomeArray {
-    array: Rc<Box<Array<ArrayItem>>>,
+    array: Array<ArrayItem>,
     len: usize,
 }
 
@@ -34,7 +34,7 @@ impl MyAwesomeArray {
             }
         }
 
-        match arr(ArrayIndex::ArrayItem) {
+        match arr(ArrayIndex::Value) {
             ArrayCell::Head(value) => Some(value),
             _ => None
         }

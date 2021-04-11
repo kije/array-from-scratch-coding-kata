@@ -2,22 +2,23 @@ use std::rc::Rc;
 
 pub type ArrayItem = isize;
 
-pub type Array<T> = dyn Fn(ArrayIndex) -> ArrayCell<T>;
+pub type ArrayClosure<T> = dyn Fn(ArrayIndex) -> ArrayCell<T>;
+pub type Array<T> = Rc<Box<ArrayClosure<T>>>;
 
 pub enum ArrayCell<T> {
     Head(T),
-    Tail(Option<Rc<Box<Array<T>>>>),
+    Tail(Option<Array<T>>),
 }
 
 pub enum ArrayIndex {
-    ArrayItem,
+    Value,
     Rest,
 }
 
-pub fn create_array(elem: ArrayItem, tail: Option<Rc<Box<Array<ArrayItem>>>>) -> Rc<Box<Array<ArrayItem>>> {
+pub fn create_array(elem: ArrayItem, tail: Option<Array<ArrayItem>>) -> Array<ArrayItem> {
     Rc::new(Box::new(move |index: ArrayIndex| {
         match index {
-            ArrayIndex::ArrayItem => ArrayCell::Head(elem),
+            ArrayIndex::Value => ArrayCell::Head(elem),
             ArrayIndex::Rest => ArrayCell::Tail(tail.clone()),
         }
     }))
@@ -31,8 +32,7 @@ mod tests {
     #[test]
     fn can_create_new_array() {
         let array = create_array(1, None);
-        let elem1 = array(ArrayIndex::ArrayItem);
-        match elem1 {
+        match array(ArrayIndex::Value) {
             ArrayCell::Head(elem) => assert_eq!(elem, 1),
             _ => panic!(),
         }
@@ -43,17 +43,16 @@ mod tests {
         let array1 = create_array(1, None);
         let array2 = create_array(2, Some(array1));
 
-        let elem_from_array_2 = array2(ArrayIndex::ArrayItem);
+        let elem_from_array_2 = array2(ArrayIndex::Value);
         match elem_from_array_2 {
             ArrayCell::Head(elem) => assert_eq!(elem, 2),
             _ => panic!(),
         }
 
-        let retrived_array_2 = array2(ArrayIndex::Rest);
-        match retrived_array_2 {
+        let retrieved_array_1 = array2(ArrayIndex::Rest);
+        match retrieved_array_1 {
             ArrayCell::Tail(Some(array1)) => {
-                let elem1 = array1(ArrayIndex::ArrayItem);
-                match elem1 {
+                match array1(ArrayIndex::Value) {
                     ArrayCell::Head(elem) => assert_eq!(elem, 1),
                     _ => panic!(),
                 }
