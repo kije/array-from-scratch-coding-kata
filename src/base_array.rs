@@ -14,11 +14,11 @@ pub enum ArrayIndex {
     Rest,
 }
 
-pub fn create_array(elem: ArrayItem, cdr: Option<Rc<Box<Array<ArrayItem>>>>) -> Rc<Box<Array<ArrayItem>>> {
+pub fn create_array(elem: ArrayItem, tail: Option<Rc<Box<Array<ArrayItem>>>>) -> Rc<Box<Array<ArrayItem>>> {
     Rc::new(Box::new(move |index: ArrayIndex| {
         match index {
             ArrayIndex::ArrayItem => ArrayCell::Head(elem),
-            ArrayIndex::Rest => ArrayCell::Tail(cdr.clone()),
+            ArrayIndex::Rest => ArrayCell::Tail(tail.clone()),
         }
     }))
 }
